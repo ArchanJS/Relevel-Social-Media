@@ -53,3 +53,36 @@ exports.signIn=async(req,res)=>{
         res.status(500).json({error:"Something went wrong!"});
     }
 }
+
+
+// Forgot password
+exports.forgotPassword=async(req,res)=>{
+    try {
+        const {email}=req.body;
+        const user=await User.findOne({where:{email:email}});
+        const token=await jwt.sign({id:user.id},process.env.SECRET,{expiresIn:process.env.TEMP_EXP});
+        sendEmail({email:user.email,subject:"forgot password",message:`Here is your token: ${token}`});
+        res.status(200).json({message:"Email sent!"});
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Something went wrong!"});
+    }
+}
+
+// Reset password
+exports.resetPassword=async(req,res)=>{
+    try {
+        let {token,password}=req.body;
+        const obj=await jwt.verify(token,process.env.SECRET);
+        const user=await User.findOne({where:{id:obj.id}});
+        if(!user) res.status(400).json({error:"User doesn't exist!"});
+        else{
+            password=await bcryptjs.hash(password,10);
+            await User.update({password:password},{where:{id:obj.id}});
+            res.status(200).json({message:"Password updated!"});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({error:"Something went wrong!"});
+    }
+}
