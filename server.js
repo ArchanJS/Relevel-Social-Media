@@ -10,6 +10,7 @@ app.use(cors());
 require('./models/index');
 
 require('./routes/public.rou')(app);
+require('./routes/private.rou')(app);
 
 const port=process.env.PORT || 8000;
 
